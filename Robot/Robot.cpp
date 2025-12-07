@@ -6,10 +6,9 @@
 #pragma comment (lib, "OpenGL32.lib")
 #pragma comment (lib, "GLU32.lib")
 #define WINDOW_TITLE "Pacific Rim"
-#define PI 3.14159265
 
 //Cam Position
-float camPosX = 0.0f, camPosY = 10.0f, camPosZ = 7.0f;
+float camPosX = 0.0f, camPosY = 10.0f, camPosZ = 12.0f;
 float turbineRotation = 0.0f;
 
 //Color
@@ -214,6 +213,137 @@ void drawArm(bool isLeft) {
     glPopMatrix();
 }
 
+void drawLeg(bool isLeft) {
+    float side = isLeft ? -1.0f : 1.0f; // Left leg is on negative X
+
+    glPushMatrix();
+
+    // --- 1. HIP JOINT ---
+    // Connect to bottom of torso (Torso center y=1.2, bottom ~0.7)
+    glTranslatef(side * 0.5f, 0.7f, 0.0f);
+
+    glColor3fv(CLR_GREY);
+    drawSphere(0.35f, 16, 16); // Ball joint
+
+    // --- 2. THIGH ---
+    // Rotate slightly for a "standing stance"
+    glRotatef(isLeft ? -5 : 5, 0, 0, 1);
+    glPushMatrix();
+    glTranslatef(0, -0.6f, 0); // Move to thigh center
+
+    // Main Thigh Armor
+    glColor3fv(CLR_NAVY);
+    drawBox(0.55f, 1.0f, 0.6f);
+
+    // Detail: Side Stripe (Matches the shoulder decal)
+    glPushMatrix();
+    glTranslatef(side * 0.28f, 0, 0); // Move to outer surface
+
+    // White Stripe Base
+    glColor3fv(CLR_WHITE);
+    drawBox(0.05f, 0.8f, 0.2f);
+
+    // Red Stripe Detail
+    glTranslatef(side * 0.01f, 0, 0);
+    glColor3fv(CLR_RED);
+    drawBox(0.05f, 0.6f, 0.08f);
+    glPopMatrix();
+
+    // Detail: Back Piston (Hydraulic look)
+    glColor3fv(CLR_GREY);
+    glPushMatrix();
+    glTranslatef(0, 0.3f, -0.3f);
+    glRotatef(90, 1, 0, 0);
+    drawCylinder(0.1f, 0.1f, 0.6f, 8);
+    glPopMatrix();
+
+    // --- 3. KNEE JOINT ---
+    glTranslatef(0, -0.6f, 0); // Move down to Knee
+    glColor3fv(CLR_GREY);
+
+    // Knee Hinge (Horizontal Cylinder)
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0); // Horizontal
+    glTranslatef(0, 0, -0.35f); // Center it
+    drawCylinder(0.2f, 0.2f, 0.7f, 16);
+    glPopMatrix();
+
+    // Knee Cap Armor (Front plate)
+    glColor3fv(CLR_NAVY);
+    glPushMatrix();
+    glTranslatef(0, 0.05f, 0.35f);
+    glRotatef(-15, 1, 0, 0); // Angle it slightly
+    drawBox(0.35f, 0.4f, 0.15f);
+    glPopMatrix();
+
+    // --- 4. SHIN (LOWER LEG) ---
+    glTranslatef(0, -0.7f, 0); // Move to Shin center
+
+    // Main Shin Armor (Tapered look via scale)
+    glColor3fv(CLR_NAVY);
+    glPushMatrix();
+    glScalef(1.0f, 1.0f, 0.8f); // Slightly thinner depth
+    drawBox(0.5f, 1.1f, 0.6f);
+    glPopMatrix();
+
+    // Detail: Front Vents (Grill)
+    glColor3fv(CLR_GREY);
+    glPushMatrix();
+    glTranslatef(0, -0.2f, 0.31f); // Front surface
+    drawBox(0.2f, 0.4f, 0.05f); // Vent background
+
+    // Draw 3 small slats for the vent
+    glColor3f(0.1f, 0.1f, 0.1f); // Dark Grey/Black
+    for (float y = -0.1f; y < 0.2f; y += 0.1f) {
+        glPushMatrix();
+        glTranslatef(0, y, 0.03f);
+        drawBox(0.18f, 0.02f, 0.02f);
+        glPopMatrix();
+    }
+    glPopMatrix();
+
+    // --- 5. FOOT ---
+    glTranslatef(0, -0.7f, 0); // Move to Ankle
+
+    // Ankle Joint
+    glColor3fv(CLR_GREY);
+    drawSphere(0.25f, 16, 16);
+
+    // The Boot (Complex Shape)
+    glTranslatef(0, -0.25f, 0.1f); // Move to floor level
+
+    // Heel Section
+    glColor3fv(CLR_NAVY);
+    glPushMatrix();
+    glTranslatef(0, 0, -0.3f);
+    drawBox(0.5f, 0.4f, 0.4f);
+    glPopMatrix();
+
+    // Arch (Connecting piece)
+    glColor3fv(CLR_GREY);
+    glPushMatrix();
+    glTranslatef(0, -0.1f, 0.0f);
+    drawBox(0.4f, 0.2f, 0.5f);
+    glPopMatrix();
+
+    // Toe Section
+    glColor3fv(CLR_NAVY);
+    glPushMatrix();
+    glTranslatef(0, -0.1f, 0.35f); // Move to front
+    drawBox(0.55f, 0.3f, 0.5f);    // Main toe block
+
+    // Toe Tip Detail
+    glColor3fv(CLR_GREY);
+    glTranslatef(0, -0.15f, 0.26f);
+    drawBox(0.4f, 0.1f, 0.1f);
+    glPopMatrix();
+
+    glPopMatrix(); // Pop Thigh
+    glPopMatrix(); // Pop Hip
+    glPopMatrix(); // Pop Main
+}
+
+//render
 void drawLightIndicator()
 {
     glPushMatrix();
@@ -244,6 +374,8 @@ void display() {
     drawHead();
     drawArm(true);
     drawArm(false);
+    drawLeg(true);
+    drawLeg(false);
     drawLightIndicator();
 }
 
@@ -264,6 +396,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
         case VK_DOWN: camPosY += 5; break;
         case VK_ADD: camPosZ -= 1; break; 
         case VK_SUBTRACT: camPosZ += 1; break;
+        case VK_SPACE: 
+            diffuseLightPosition[0] = 0;
+            diffuseLightPosition[1] = 0.8;
+            diffuseLightPosition[2] = -2;
+            camPosX = 0;
+            camPosY = 10;
+            camPosZ = 12;
 
         case '1': diffuseLightPosition[0] -= 0.1f; break; //left
         case '2': diffuseLightPosition[0] += 0.1f; break; //right
