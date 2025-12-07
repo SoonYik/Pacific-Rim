@@ -214,86 +214,67 @@ void drawArm(bool isLeft) {
 }
 
 void drawLeg(bool isLeft) {
-    float side = isLeft ? -1.0f : 1.0f; // Left leg is on negative X
+    float side = isLeft ? -1.0f : 1.0f;
 
-    glPushMatrix();
-
-    // --- 1. HIP JOINT ---
-    // Connect to bottom of torso (Torso center y=1.2, bottom ~0.7)
+    glPushMatrix();//upper joint
     glTranslatef(side * 0.5f, 0.7f, 0.0f);
-
     glColor3fv(CLR_GREY);
-    drawSphere(0.35f, 16, 16); // Ball joint
-
-    // --- 2. THIGH ---
-    // Rotate slightly for a "standing stance"
+    drawSphere(0.35f, 16, 16);
     glRotatef(isLeft ? -5 : 5, 0, 0, 1);
-    glPushMatrix();
-    glTranslatef(0, -0.6f, 0); // Move to thigh center
 
-    // Main Thigh Armor
+    glPushMatrix();//upper leg
+    glTranslatef(0, -0.6f, 0);
     glColor3fv(CLR_NAVY);
     drawBox(0.55f, 1.0f, 0.6f);
 
-    // Detail: Side Stripe (Matches the shoulder decal)
-    glPushMatrix();
-    glTranslatef(side * 0.28f, 0, 0); // Move to outer surface
-
-    // White Stripe Base
+    glPushMatrix();//decoration
+    glTranslatef(side * 0.28f, 0, 0);
     glColor3fv(CLR_WHITE);
     drawBox(0.05f, 0.8f, 0.2f);
-
-    // Red Stripe Detail
     glTranslatef(side * 0.01f, 0, 0);
     glColor3fv(CLR_RED);
     drawBox(0.05f, 0.6f, 0.08f);
     glPopMatrix();
-
-    // Detail: Back Piston (Hydraulic look)
-    glColor3fv(CLR_GREY);
+    
+    glColor3fv(CLR_GREY);//Hydraulic
     glPushMatrix();
     glTranslatef(0, 0.3f, -0.3f);
     glRotatef(90, 1, 0, 0);
     drawCylinder(0.1f, 0.1f, 0.6f, 8);
     glPopMatrix();
 
-    // --- 3. KNEE JOINT ---
-    glTranslatef(0, -0.6f, 0); // Move down to Knee
+    glTranslatef(0, -0.6f, 0);//mid joint
     glColor3fv(CLR_GREY);
-
-    // Knee Hinge (Horizontal Cylinder)
     glPushMatrix();
-    glRotatef(90, 0, 1, 0); // Horizontal
-    glTranslatef(0, 0, -0.35f); // Center it
+    glRotatef(90, 0, 1, 0);
+    glTranslatef(0, 0, -0.35f);
     drawCylinder(0.2f, 0.2f, 0.7f, 16);
     glPopMatrix();
 
-    // Knee Cap Armor (Front plate)
-    glColor3fv(CLR_NAVY);
+    glColor3fv(CLR_NAVY);//joint cap
     glPushMatrix();
     glTranslatef(0, 0.05f, 0.35f);
-    glRotatef(-15, 1, 0, 0); // Angle it slightly
+    glRotatef(-10, 1, 0, 0);
+    drawBox(0.35f, 0.4f, 0.15f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0, 0.05f, -0.15f);
     drawBox(0.35f, 0.4f, 0.15f);
     glPopMatrix();
 
-    // --- 4. SHIN (LOWER LEG) ---
-    glTranslatef(0, -0.7f, 0); // Move to Shin center
-
-    // Main Shin Armor (Tapered look via scale)
+    glTranslatef(0, -0.7f, 0);//lower leg
     glColor3fv(CLR_NAVY);
     glPushMatrix();
-    glScalef(1.0f, 1.0f, 0.8f); // Slightly thinner depth
+    glScalef(1.0f, 1.0f, 0.8f);
     drawBox(0.5f, 1.1f, 0.6f);
     glPopMatrix();
 
-    // Detail: Front Vents (Grill)
-    glColor3fv(CLR_GREY);
+    glColor3fv(CLR_GREY);//decoration
     glPushMatrix();
-    glTranslatef(0, -0.2f, 0.31f); // Front surface
-    drawBox(0.2f, 0.4f, 0.05f); // Vent background
+    glTranslatef(0, -0.2f, 0.31f);
+    drawBox(0.2f, 0.4f, 0.05f);
 
-    // Draw 3 small slats for the vent
-    glColor3f(0.1f, 0.1f, 0.1f); // Dark Grey/Black
+    glColor3f(0.1f, 0.1f, 0.1f);
     for (float y = -0.1f; y < 0.2f; y += 0.1f) {
         glPushMatrix();
         glTranslatef(0, y, 0.03f);
@@ -302,45 +283,36 @@ void drawLeg(bool isLeft) {
     }
     glPopMatrix();
 
-    // --- 5. FOOT ---
-    glTranslatef(0, -0.7f, 0); // Move to Ankle
-
-    // Ankle Joint
+    glTranslatef(0, -0.6f, 0);//lower joint
     glColor3fv(CLR_GREY);
     drawSphere(0.25f, 16, 16);
 
-    // The Boot (Complex Shape)
-    glTranslatef(0, -0.25f, 0.1f); // Move to floor level
-
-    // Heel Section
+    glTranslatef(0, -0.25f, 0.25f);//back
     glColor3fv(CLR_NAVY);
     glPushMatrix();
     glTranslatef(0, 0, -0.3f);
     drawBox(0.5f, 0.4f, 0.4f);
     glPopMatrix();
 
-    // Arch (Connecting piece)
-    glColor3fv(CLR_GREY);
+    glColor3fv(CLR_GREY);//mid
     glPushMatrix();
     glTranslatef(0, -0.1f, 0.0f);
     drawBox(0.4f, 0.2f, 0.5f);
     glPopMatrix();
 
-    // Toe Section
-    glColor3fv(CLR_NAVY);
+    glColor3fv(CLR_NAVY);//top
     glPushMatrix();
-    glTranslatef(0, -0.1f, 0.35f); // Move to front
-    drawBox(0.55f, 0.3f, 0.5f);    // Main toe block
+    glTranslatef(0, -0.1f, 0.35f);
+    drawBox(0.55f, 0.3f, 0.5f);
 
-    // Toe Tip Detail
-    glColor3fv(CLR_GREY);
+    glColor3fv(CLR_GREY);//toe
     glTranslatef(0, -0.15f, 0.26f);
     drawBox(0.4f, 0.1f, 0.1f);
     glPopMatrix();
 
-    glPopMatrix(); // Pop Thigh
-    glPopMatrix(); // Pop Hip
-    glPopMatrix(); // Pop Main
+    glPopMatrix();//upper leg
+    glPopMatrix();//upper joint
+    glPopMatrix();//main
 }
 
 //render
