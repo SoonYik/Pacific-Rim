@@ -212,9 +212,9 @@ void drawBody() {
     glTranslatef(0, 1, 0);
 
     glPushMatrix();//chest
-    glColor3fv(CLR_NAVY);
     glScalef(1.8f, 1.2f, 1.1f);
-    drawBox(1.0f, 0.85f, 1.0f);
+    glColor3fv(CLR_NAVY);
+    drawBox(1.0f, 0.9f, 1.0f);
     glColor3fv(CLR_GREY);
     drawBox(0.8f, 1.0f, 0.8f);
     glPopMatrix();
