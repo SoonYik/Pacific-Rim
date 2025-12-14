@@ -18,6 +18,7 @@ const float CLR_RED[] = { 0.70f, 0.10f, 0.10f };
 const float CLR_WHITE[] = { 0.90f, 0.90f, 0.90f };
 const float CLR_YELLOW[] = { 1.00f, 0.80f, 0.00f };
 const float CLR_GLOW[] = { 1.00f, 0.60f, 0.20f };
+const float CLR_SILVER[] = { 0.75f, 0.75f, 0.75f };
 
 //Light
 float noEmit[] = { 0,0,0,1 };
@@ -62,6 +63,59 @@ void drawDisk(float inner, float outer) {
     gluDeleteQuadric(q);
 }
 
+//draw details
+void drawAbdomenLayer(float xPos, float yPos, float zPos)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        yPos -= 0.25f;
+
+        glPushMatrix();
+        glTranslatef(xPos, yPos, zPos);
+        drawBox(0.3f, 0.2f, 0.3);
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(-xPos, yPos, zPos);
+        drawBox(0.3f, 0.2f, 0.3f);
+        glPopMatrix();
+    }
+}
+
+void drawAbdomenDetail() 
+{
+    glPushMatrix();//middle
+    glColor3fv(CLR_GREY);
+    drawBox(0.5f, 1.5f, 0.6f);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, 0.3f, 0.25f);
+
+    glColor3fv(CLR_NAVY);//layers
+    drawAbdomenLayer(0.3, 0.3, 0.1);
+    glColor3fv(CLR_SILVER);
+    drawAbdomenLayer(0.4 ,0.25, 0.0);
+    glColor3fv(CLR_NAVY);
+    drawAbdomenLayer(0.5, 0.2, -0.1);
+    glColor3fv(CLR_NAVY);
+    drawAbdomenLayer(0.5, 0.2, -0.3);
+    glColor3fv(CLR_SILVER);
+    drawAbdomenLayer(0.4, 0.25, -0.4);
+    glColor3fv(CLR_NAVY);
+    drawAbdomenLayer(0.3, 0.3, -0.5);
+
+    glPushMatrix();
+    glMaterialfv(GL_FRONT, GL_EMISSION, highEmit);
+    glColor3fv(CLR_GLOW);
+    glTranslatef(0, 0, 0.02f);
+    drawBox(0.08f, 0.3f, 0.1f);
+    glMaterialfv(GL_FRONT, GL_EMISSION, noEmit);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
 //main part
 void drawChestTurbine() {
     glPushMatrix();
@@ -91,7 +145,7 @@ void drawChestTurbine() {
 
 void drawHead() {
     glPushMatrix();
-    glTranslatef(0, 2.5f, 0);
+    glTranslatef(0, 3.0f, 0);
     glColor3fv(CLR_NAVY);
 
     glPushMatrix();
@@ -112,15 +166,19 @@ void drawHead() {
 
     glMaterialfv(GL_FRONT, GL_EMISSION, highEmit);//eye
     glColor3fv(CLR_YELLOW);
-    glTranslatef(0, -0.25, 0.30f);
+    glTranslatef(0, -0.25, 0.25f);
     glBegin(GL_POLYGON);
     glNormal3f(0, 0, 1);
     glVertex3f(-0.2f, 0.15f, -0.1f);
-    glVertex3f(-0.15f, 0.0f, 0.03f);
-    glVertex3f(0.0f, -0.05f, 0.0f);
-    glVertex3f(0.15f, 0.0f, 0.03f);
+    glVertex3f(-0.1f, 0.0f, 0.01f);
+    glVertex3f(0.0f, 0.05f, 0.01f);
+    glVertex3f(0.0f, 0.1f, 0.01f);
+    glEnd();
+    glBegin(GL_POLYGON);
+    glVertex3f(0.0f, 0.05f, 0.01f);
+    glVertex3f(0.1f, 0.0f, 0.01f);
     glVertex3f(0.2f, 0.15f, -0.1f);
-    glVertex3f(0.0f, 0.18f, -0.2f);
+    glVertex3f(0.0f, 0.1f, 0.01f);
     glEnd();
     glMaterialfv(GL_FRONT, GL_EMISSION, noEmit);
 
@@ -143,18 +201,18 @@ void drawShoulder(bool isLeft) {
 void drawBody() {
     glPushMatrix();
     glTranslatef(0, 1.2f, 0);
-    glColor3fv(CLR_NAVY);
 
     glPushMatrix();//lower part
-    glTranslatef(0, -0.5f, 0);
+    glTranslatef(0, 0, 0);
     glScalef(0.9f, 1.0f, 0.7f);
-    drawBox(1.0f, 1.0f, 1.0f);
+    drawAbdomenDetail();
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef(0, 0.5f, 0);
+    glTranslatef(0, 1, 0);
 
     glPushMatrix();//upper part
+    glColor3fv(CLR_NAVY);
     glScalef(1.8f, 1.2f, 1.1f);
     drawBox(1.0f, 1.0f, 1.0f);
     glPopMatrix();
@@ -183,7 +241,7 @@ void drawArm(bool isLeft) {
     float side = isLeft ? -1.0f : 1.0f;
 
     glPushMatrix();//joint
-    glTranslatef(side * 1.4f, 1.8f, 0);
+    glTranslatef(side * 1.4f, 2.3f, 0);
     glColor3fv(CLR_GREY);
     drawSphere(0.4f, 16, 16);
 
