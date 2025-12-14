@@ -202,7 +202,7 @@ void drawBody() {
     glPushMatrix();
     glTranslatef(0, 1.2f, 0);
 
-    glPushMatrix();//lower part
+    glPushMatrix();//abdomen
     glTranslatef(0, 0, 0);
     glScalef(0.9f, 1.0f, 0.7f);
     drawAbdomenDetail();
@@ -211,23 +211,25 @@ void drawBody() {
     glPushMatrix();
     glTranslatef(0, 1, 0);
 
-    glPushMatrix();//upper part
+    glPushMatrix();//chest
     glColor3fv(CLR_NAVY);
     glScalef(1.8f, 1.2f, 1.1f);
-    drawBox(1.0f, 1.0f, 1.0f);
+    drawBox(1.0f, 0.85f, 1.0f);
+    glColor3fv(CLR_GREY);
+    drawBox(0.8f, 1.0f, 0.8f);
     glPopMatrix();
 
     glPushMatrix();//left neck
     glColor3fv(CLR_WHITE);
     glTranslatef(0.6f, 0.6f, 0);
     glRotatef(20, 0, 0, 1);
-    drawBox(0.5f, 0.4f, 0.8f);
+    drawBox(0.5f, 0.4f, 0.6f);
     glPopMatrix();
 
     glPushMatrix();//right neck
     glTranslatef(-0.6f, 0.6f, 0);
     glRotatef(-20, 0, 0, 1);
-    drawBox(0.5f, 0.4f, 0.8f);
+    drawBox(0.5f, 0.4f, 0.6f);
     glPopMatrix();
 
     glTranslatef(0, 0.0f, 0.55f);
