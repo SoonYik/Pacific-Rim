@@ -7,8 +7,29 @@
 #pragma comment (lib, "GLU32.lib")
 #define WINDOW_TITLE "Pacific Rim"
 
+// Constants
+float
+PI = 3.1415926535;
+
+// Window
+int windowWidth = 1000;
+
 //Cam Position
-float camPosX = 0.0f, camPosY = 10.0f, camPosZ = 12.0f;
+float
+moveSpeed = 0.15,
+rotateSpeed = 2.5,
+posX = -3.0,
+posY = -5.0,
+posZ = -6.0,
+pitch = 30,
+yaw = -25,
+tempDistance,
+forwardX,
+forwardY,
+forwardZ;
+
+bool toggleLight;
+
 float turbineRotation = 0.0f;
 
 //Color
@@ -27,19 +48,62 @@ GLfloat ambientLight[] = { 0.2,0.2,0.2 };
 GLfloat diffuseLight[] = { 0.7,0.7,0.7 };
 GLfloat diffuseLightPosition[] = { 0,0.8,-2,1 };
 
+// Functions
+float DegToRad(float degree) {
+    return degree / 180 * PI;
+}
+
 //shapes initialize
-void drawBox(float w, float h, float d) {
-    glPushMatrix();
-    glScalef(w, h, d);
+void drawBox(float x, float y, float z) {
     glBegin(GL_QUADS);
-    glNormal3f(0, 0, 1); glVertex3f(-0.5f, -0.5f, 0.5f); glVertex3f(0.5f, -0.5f, 0.5f); glVertex3f(0.5f, 0.5f, 0.5f); glVertex3f(-0.5f, 0.5f, 0.5f);//top
-    glNormal3f(0, 0, -1); glVertex3f(-0.5f, -0.5f, -0.5f); glVertex3f(-0.5f, 0.5f, -0.5f); glVertex3f(0.5f, 0.5f, -0.5f); glVertex3f(0.5f, -0.5f, -0.5f);//bot
-    glNormal3f(0, 1, 0); glVertex3f(-0.5f, 0.5f, -0.5f); glVertex3f(-0.5f, 0.5f, -0.5f); glVertex3f(0.5f, 0.5f, 0.5f); glVertex3f(0.5f, 0.5f, 0.5f);//left
-    glNormal3f(0, -1, 0); glVertex3f(-0.5f, -0.5f, -0.5f); glVertex3f(0.5f, -0.5f, -0.5f); glVertex3f(0.5f, -0.5f, 0.5f); glVertex3f(-0.5f, -0.5f, 0.5f);//right
-    glNormal3f(1, 0, 0); glVertex3f(0.5f, -0.5f, -0.5f); glVertex3f(0.5f, 0.5f, -0.5f); glVertex3f(0.5f, 0.5f, 0.5f); glVertex3f(0.5f, -0.5f, 0.5f);//front
-    glNormal3f(-1, 0, 0); glVertex3f(-0.5f, -0.5f, -0.5f); glVertex3f(-0.5f, -0.5f, 0.5f); glVertex3f(-0.5f, 0.5f, 0.5f); glVertex3f(-0.5f, 0.5f, -0.5f);//back
+
+    x /= 2;
+    y /= 2;
+    z /= 2;
+
+    // Front
+    glNormal3f(0, 0, -1);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-x, -y, -z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, -y, -z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, -z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-x, y, -z);
+
+    // Back
+    glNormal3f(0, 0, 1);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, -y, z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-x, -y, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-x, y, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
+
+    // Top
+    glNormal3f(0, 1, 0);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-x, y, -z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, -z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-x, y, z);
+
+    // Bottom
+    glNormal3f(0, -1, 0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, -y, z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-x, -y, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-x, -y, -z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, -y, -z);
+
+    // Left
+    glNormal3f(-1, 0, 0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-x, -y, -z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-x, y, -z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-x, y, z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-x, -y, z);
+
+    // Right
+    glNormal3f(1, 0, 0);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, -y, -z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, -y, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, -z);
+
     glEnd();
-    glPopMatrix();
 }
 
 void drawCylinder(float base, float top, float height, int slices) {
@@ -82,7 +146,7 @@ void drawAbdomenLayer(float xPos, float yPos, float zPos)
     }
 }
 
-void drawAbdomenDetail() 
+void drawAbdomenDetail()
 {
     glPushMatrix();//middle
     glColor3fv(CLR_GREY);
@@ -95,7 +159,7 @@ void drawAbdomenDetail()
     glColor3fv(CLR_NAVY);//layers
     drawAbdomenLayer(0.3, 0.3, 0.1);
     glColor3fv(CLR_SILVER);
-    drawAbdomenLayer(0.4 ,0.25, 0.0);
+    drawAbdomenLayer(0.4, 0.25, 0.0);
     glColor3fv(CLR_NAVY);
     drawAbdomenLayer(0.5, 0.2, -0.1);
     glColor3fv(CLR_NAVY);
@@ -295,7 +359,7 @@ void drawLeg(bool isLeft) {
     glColor3fv(CLR_RED);
     drawBox(0.05f, 0.6f, 0.08f);
     glPopMatrix();
-    
+
     glColor3fv(CLR_GREY);//Hydraulic
     glPushMatrix();
     glTranslatef(0, 0.3f, -0.3f);
@@ -392,11 +456,21 @@ void drawLightIndicator()
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
 
-    glTranslatef(0, 0, -camPosZ);
-    glRotatef(camPosY, 1, 0, 0);
-    glRotatef(camPosX, 0, 1, 0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90.0f / (16.0f / 9), 16.0f / 9, 0.1, 25);
+
+    forwardX = -cos(DegToRad(pitch)) * sin(DegToRad(yaw));
+    forwardY = sin(DegToRad(pitch));
+    forwardZ = cos(DegToRad(pitch)) * cos(DegToRad(yaw));
+
+    glRotatef(pitch, 1, 0, 0);
+    glRotatef(yaw, 0, 1, 0);
+    glTranslatef(posX, posY, posZ);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
@@ -421,28 +495,77 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
     case WM_DESTROY: PostQuitMessage(0); break;
     case WM_KEYDOWN:
         switch (wParam) {
-        case VK_ESCAPE: PostQuitMessage(0); break;
-        case VK_LEFT: camPosX -= 5; break;
-        case VK_RIGHT: camPosX += 5; break;
-        case VK_UP: camPosY -= 5; break;
-        case VK_DOWN: camPosY += 5; break;
-        case VK_ADD: camPosZ -= 1; break; 
-        case VK_SUBTRACT: camPosZ += 1; break;
-        case VK_SPACE: 
-            diffuseLightPosition[0] = 0;
-            diffuseLightPosition[1] = 0.8;
-            diffuseLightPosition[2] = -2;
-            camPosX = 0;
-            camPosY = 10;
-            camPosZ = 12;
+        case VK_ESCAPE:
+            PostQuitMessage(0);
+            break;
 
-        case '1': diffuseLightPosition[0] -= 0.1f; break; //left
-        case '2': diffuseLightPosition[0] += 0.1f; break; //right
-        case '3': diffuseLightPosition[1] += 0.1f; break; //up
-        case '4': diffuseLightPosition[1] -= 0.1f; break; //down
-        case '5': diffuseLightPosition[2] += 0.1f; break; //forward
-        case '6': diffuseLightPosition[2] -= 0.1f; break; //backward
+        case 'D':
+            // Rotate 90 deg along y-axis
+            tempDistance = sqrt((forwardX * forwardX) + (forwardZ * forwardZ));
+            posX -= moveSpeed * forwardZ / tempDistance;
+            posZ += moveSpeed * forwardX / tempDistance;
+            break;
+
+        case 'A':
+            // Rotate 90 deg along y-axis
+            tempDistance = sqrt((forwardX * forwardX) + (forwardZ * forwardZ));
+            posX += moveSpeed * forwardZ / tempDistance;
+            posZ -= moveSpeed * forwardX / tempDistance;
+            break;
+
+        case 'W':
+            posX += moveSpeed * forwardX;
+            posY += moveSpeed * forwardY;
+            posZ += moveSpeed * forwardZ;
+            break;
+
+        case 'S':
+            posX -= moveSpeed * forwardX;
+            posY -= moveSpeed * forwardY;
+            posZ -= moveSpeed * forwardZ;
+            break;
+
+        case 'K':
+            pitch += rotateSpeed;
+            if (pitch > 90) pitch = 90;
+            else if (pitch < -90) pitch = -90;
+
+            break;
+
+        case 'I':
+            pitch -= rotateSpeed;
+            if (pitch > 90) pitch = 90;
+            else if (pitch < -90) pitch = -90;
+
+            break;
+
+        case 'L':
+            yaw += rotateSpeed;
+            if (yaw >= 180) yaw -= 360;
+            else if (yaw < -180) yaw += 360;
+
+            break;
+
+        case 'J':
+            yaw -= rotateSpeed;
+            if (yaw >= 180) yaw -= 360;
+            else if (yaw < -180) yaw += 360;
+
+            break;
+
+        case 'F': diffuseLightPosition[0] -= moveSpeed; break;
+        case 'H': diffuseLightPosition[0] += moveSpeed; break;
+        case 'Y': diffuseLightPosition[1] += moveSpeed; break;
+        case 'R': diffuseLightPosition[1] -= moveSpeed; break;
+        case 'T': diffuseLightPosition[2] -= moveSpeed; break;
+        case 'G': diffuseLightPosition[2] += moveSpeed; break;
+
+        case 'P':
+            if (toggleLight) toggleLight = false;
+            else toggleLight = true;
+            break;
         }
+
         break;
     default: return DefWindowProc(hWnd, msg, wParam, lParam);
     }
@@ -452,7 +575,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow) {
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW, WindowProcedure, 0, 0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, WINDOW_TITLE, NULL };
     RegisterClassEx(&wc);
-    HWND hWnd = CreateWindow(WINDOW_TITLE, WINDOW_TITLE, WS_OVERLAPPEDWINDOW, 100, 100, 1200, 800, NULL, NULL, hInst, NULL);
+    HWND hWnd = CreateWindow(WINDOW_TITLE, WINDOW_TITLE, WS_OVERLAPPEDWINDOW, 100, 100, windowWidth, windowWidth * 9.0f / 16.0f, NULL, NULL, hInst, NULL);
     HDC hdc = GetDC(hWnd);
 
     // Pixel Format
@@ -467,16 +590,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow) {
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
-    glMatrixMode(GL_PROJECTION);
-    gluPerspective(50.6272f, 1.777f, 1.0f, 50.0f);
-    glMatrixMode(GL_MODELVIEW);
 
     ShowWindow(hWnd, nCmdShow);
     MSG msg = { 0 };
     while (true) {
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) break;
-            TranslateMessage(&msg); 
+            TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
         update();
