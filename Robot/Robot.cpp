@@ -107,7 +107,7 @@ void drawAbdomenDetail()
 
     glPushMatrix();
     glMaterialfv(GL_FRONT, GL_EMISSION, highEmit);
-    glColor3fv(CLR_GLOW);
+    glColor3fv(CLR_RED);
     glTranslatef(0, 0, 0.02f);
     drawBox(0.08f, 0.3f, 0.1f);
     glMaterialfv(GL_FRONT, GL_EMISSION, noEmit);
