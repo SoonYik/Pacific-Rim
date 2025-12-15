@@ -12,7 +12,7 @@ float
 PI = 3.1415926535;
 
 // Window
-int windowWidth = 1000;
+int windowWidth = 1200;
 
 //Cam Position
 float
@@ -334,7 +334,34 @@ void drawArm(bool isLeft) {
     drawBox(0.6f, 0.4f, 0.6f);
     glPopMatrix();
     drawBox(0.45f, 1.0f, 0.45f);
+    glTranslatef(0, -0.7f, 0);
+    drawBox(0.2f, 0.4f, 0.4f);
+
+    glPushMatrix();//finger
+    glTranslatef(0.0f, -0.22f, 0.0f);
+    glColor3fv(CLR_GREY);
+    for (int i = 0; i < 4; i++) {
+        glPushMatrix();
+        float zPos = -0.12f + (i * 0.08f);
+        glTranslatef(0.0f, 0.0f, zPos);
+        drawBox(0.04f, 0.15f, 0.04f);
+        glTranslatef(0.0f, -0.15f, 0.0f);
+        drawBox(0.03f, 0.12f, 0.03f);
+        glPopMatrix();
+    }
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.05f, 0.22f);
+    glRotatef(-45, 1, 0, 0);
+    drawBox(0.05f, 0.14f, 0.05f);
+    glTranslatef(0.0f, -0.14f, 0.0f);
+    drawBox(0.04f, 0.10f, 0.04f);
     glPopMatrix();
+    glPopMatrix();
+
+    glPopMatrix();
+
+    
 }
 
 void drawLeg(bool isLeft) {
