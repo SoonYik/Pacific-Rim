@@ -1,0 +1,24 @@
+﻿  main.cpp
+  ShapeFunction.h
+D:\OpenGL\practical8\practical\main.cpp(470,21): error C2440: '=': cannot convert from 'const char [14]' to 'LPCWSTR'
+      D:\OpenGL\practical8\practical\main.cpp(470,21):
+      Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or parenthesized function-style cast
+  
+D:\OpenGL\practical8\practical\main.cpp(475,14): error C2664: 'HWND CreateWindowExW(DWORD,LPCWSTR,LPCWSTR,DWORD,int,int,int,int,HWND,HMENU,HINSTANCE,LPVOID)': cannot convert argument 2 from 'const char [14]' to 'LPCWSTR'
+      D:\OpenGL\practical8\practical\main.cpp(475,14):
+      Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or parenthesized function-style cast
+      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\winuser.h(4443,1):
+      see declaration of 'CreateWindowExW'
+      D:\OpenGL\practical8\practical\main.cpp(475,14):
+      while trying to match the argument list '(long, const char [14], const char [14], long, int, int, int, int, int, int, HINSTANCE, int)'
+  
+D:\OpenGL\practical8\practical\main.cpp(531,2): error C2664: 'BOOL UnregisterClassW(LPCWSTR,HINSTANCE)': cannot convert argument 1 from 'const char [14]' to 'LPCWSTR'
+      D:\OpenGL\practical8\practical\main.cpp(531,18):
+      Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or parenthesized function-style cast
+      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\winuser.h(4317,1):
+      see declaration of 'UnregisterClassW'
+      D:\OpenGL\practical8\practical\main.cpp(531,2):
+      while trying to match the argument list '(const char [14], HINSTANCE)'
+  
+  ShapeFuntion.cpp
+  Generating Code...
