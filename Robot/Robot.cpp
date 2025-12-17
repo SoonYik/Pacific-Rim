@@ -7,6 +7,8 @@
 #pragma comment (lib, "GLU32.lib")
 #define WINDOW_TITLE "Pacific Rim"
 
+struct Vec3 { float x, y, z; };
+
 // Constants
 float
 PI = 3.1415926535;
@@ -28,12 +30,13 @@ forwardX,
 forwardY,
 forwardZ;
 
-bool toggleLight;
+bool toggleLight = true;
 
 float turbineRotation = 0.0f;
 
 //Color
 const float CLR_NAVY[] = { 0.15f, 0.25f, 0.40f };
+const float CLR_LIGHT_NAVY[] = { 0.3f, 0.5f, 0.80f };
 const float CLR_GREY[] = { 0.30f, 0.35f, 0.40f };
 const float CLR_RED[] = { 0.70f, 0.10f, 0.10f };
 const float CLR_WHITE[] = { 0.90f, 0.90f, 0.90f };
@@ -46,11 +49,44 @@ float noEmit[] = { 0,0,0,1 };
 float highEmit[] = { 1,0.6,0.2,1 };
 GLfloat ambientLight[] = { 0.2,0.2,0.2 };
 GLfloat diffuseLight[] = { 0.7,0.7,0.7 };
-GLfloat diffuseLightPosition[] = { 0,0.8,-2,1 };
+GLfloat diffuseLightPosition[] = { 0,1.5,3,1 };
 
 // Functions
 float DegToRad(float degree) {
     return degree / 180 * PI;
+}
+
+Vec3 normalizeNormal(Vec3 normal) {
+    float distance = sqrt((normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+
+    Vec3 result;
+    result.x = normal.x / distance;
+    result.y = normal.y / distance;
+    result.z = normal.z / distance;
+
+    return result;
+}
+
+Vec3 calculateNormal(Vec3 vertex1, Vec3 vertex2, Vec3 vertex3, bool normalize = true) {
+    Vec3 edge1;
+    edge1.x = vertex2.x - vertex1.x;
+    edge1.y = vertex2.y - vertex1.y;
+    edge1.z = vertex2.z - vertex1.z;
+
+    Vec3 edge2;
+    edge2.x = vertex3.x - vertex1.x;
+    edge2.y = vertex3.y - vertex1.y;
+    edge2.z = vertex3.z - vertex1.z;
+
+    Vec3 normal;
+    normal.x = edge1.y * edge2.z - edge1.z * edge2.y;
+    normal.y = edge1.z * edge2.x - edge1.x * edge2.z;
+    normal.z = edge1.x * edge2.y - edge1.y * edge2.x;
+
+    if (normalize)
+        normal = normalizeNormal(normal);
+
+    return normal;
 }
 
 //shapes initialize
@@ -106,11 +142,69 @@ void drawBox(float x, float y, float z) {
     glEnd();
 }
 
-void drawCylinder(float base, float top, float height, int slices) {
-    GLUquadricObj* q = gluNewQuadric();
-    gluQuadricNormals(q, GLU_SMOOTH);
-    gluCylinder(q, base, top, height, slices, 4);
-    gluDeleteQuadric(q);
+void drawCustomCuboid(Vec3 vertices[8]) {
+    // Vertex's location based on array position in the cuboid
+    // 
+    //     4------5
+    //    /|     /|
+    //   0-+----1 |
+    //   | 6----+-7
+    //   |/     |/
+    //   2------3
+
+    Vec3 normal;
+
+    glBegin(GL_QUADS);
+
+    // Front
+    normal = calculateNormal(vertices[2], vertices[3], vertices[1]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[3].x, vertices[3].y, vertices[3].z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
+
+    // Back
+    normal = calculateNormal(vertices[7], vertices[6], vertices[4]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[7].x, vertices[7].y, vertices[7].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[6].x, vertices[6].y, vertices[6].z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[4].x, vertices[4].y, vertices[4].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[5].x, vertices[5].y, vertices[5].z);
+
+    // Left
+    normal = calculateNormal(vertices[6], vertices[2], vertices[0]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[6].x, vertices[6].y, vertices[6].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[4].x, vertices[4].y, vertices[4].z);
+
+    // Right
+    normal = calculateNormal(vertices[3], vertices[7], vertices[5]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[3].x, vertices[3].y, vertices[3].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[7].x, vertices[7].y, vertices[7].z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[5].x, vertices[5].y, vertices[5].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z);
+
+    // Top
+    normal = calculateNormal(vertices[0], vertices[1], vertices[5]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[5].x, vertices[5].y, vertices[5].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[4].x, vertices[4].y, vertices[4].z);
+
+    // Bottom
+    normal = calculateNormal(vertices[3], vertices[2], vertices[6]);
+    glNormal3f(normal.x, normal.y, normal.z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(vertices[3].x, vertices[3].y, vertices[3].z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(vertices[6].x, vertices[6].y, vertices[6].z);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(vertices[7].x, vertices[7].y, vertices[7].z);
+
+    glEnd();
 }
 
 void drawSphere(float radius, float slices, float stack) {
@@ -120,11 +214,39 @@ void drawSphere(float radius, float slices, float stack) {
     gluDeleteQuadric(s);
 }
 
-void drawDisk(float inner, float outer) {
+void drawDisk(float inner, float outer, int slices) {
     GLUquadricObj* q = gluNewQuadric();
     gluQuadricNormals(q, GLU_SMOOTH);
-    gluDisk(q, inner, outer, 32, 4);
+    gluDisk(q, inner, outer, slices, 4);
     gluDeleteQuadric(q);
+}
+
+void drawCylinder(float base, float top, float height, int slices, bool hasCaps = true) {
+    glPushMatrix();
+    glTranslatef(0, -height / 2, 0);
+    glPushMatrix();
+    glRotatef(-90, 1, 0, 0);
+    glRotatef(360.0f / slices / 2, 0, 0, 1);
+
+    if (hasCaps)
+        drawDisk(0, base, slices);
+    
+    GLUquadricObj* q = gluNewQuadric();
+    gluQuadricNormals(q, GLU_SMOOTH);
+    gluCylinder(q, base, top, height, slices, 4);
+    gluDeleteQuadric(q);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, height, 0);
+    glRotatef(-90, 1, 0, 0);
+    glRotatef(360.0f / slices / 2, 0, 0, 1);
+
+    if (hasCaps)
+        drawDisk(0, top, slices);
+    
+    glPopMatrix();
+    glPopMatrix();
 }
 
 //draw details
@@ -184,7 +306,11 @@ void drawAbdomenDetail()
 void drawChestTurbine() {
     glPushMatrix();
     glColor3fv(CLR_GREY);
-    drawCylinder(0.45f, 0.45f, 0.1f, 32);
+    glPushMatrix();
+    glTranslatef(0, 0.05, 0);
+    glRotatef(90, 1, 0, 0);
+    drawCylinder(0.45f, 0.45f, 0.1f, 32, false);
+    glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0, 0, 0.05f);
@@ -213,10 +339,10 @@ void drawHead() {
     glColor3fv(CLR_NAVY);
 
     glPushMatrix();
-    glRotatef(90, 1, 0, 0);
+    glTranslatef(0, -0.2, 0);
     drawCylinder(0.30f, 0.40f, 0.25f, 16);//neck
     glColor3fv(CLR_WHITE);
-    glTranslatef(0, 0, -0.1);
+    glTranslatef(0, 0.065, -0.1);
     drawCylinder(0.29f, 0.27f, 0.2f, 16);
     glPopMatrix();
 
@@ -303,13 +429,133 @@ void drawBody() {
     glPopMatrix();
 }
 
+void drawJoint(float diameter, float height) {
+    glPushMatrix();
+    glRotatef(-90, 1, 0, 0);
+    glRotatef(90, 0, 0, 1);
+    drawCylinder(diameter, diameter, height, 8);
+    drawCylinder(diameter / 4 * 3, diameter / 4 * 3, height + diameter * 0.2, 8);
+    glPopMatrix();
+}
+
+void drawArmGuard(float side) {
+    glColor3fv(CLR_LIGHT_NAVY);
+    glPushMatrix();
+    glRotatef(side * -3.5, 0, 0, 1);
+    glTranslatef(side * 0.2f, 0, 0);
+    drawBox(0.05f, 0.65f, 0.35f);
+
+    glColor3fv(CLR_RED);
+    glPushMatrix();
+    glTranslatef(side * -0.0475f, 0, 0.195f);
+    glRotatef(side * -60, 0, 1, 0);
+    drawBox(0.05f, 0.6499f, 0.15f);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(side * -0.0475f, 0, -0.195f);
+    glRotatef(side * 60, 0, 1, 0);
+    drawBox(0.05f, 0.6499f, 0.15f);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
+void drawPalm() {
+    drawBox(0.2f, 0.3f, 0.2f);
+    glTranslatef(0, 0.0f, 0);
+
+    Vec3 vertices3[8];
+    vertices3[0].x = -0.1f; vertices3[0].y = -0.15f; vertices3[0].z = 0.1;
+    vertices3[1].x = 0.1f; vertices3[1].y = -0.15f; vertices3[1].z = 0.1;
+    vertices3[2].x = -0.05f; vertices3[2].y = -0.25f; vertices3[2].z = 0.1;
+    vertices3[3].x = 0.05f; vertices3[3].y = -0.25f; vertices3[3].z = 0.1;
+    vertices3[4].x = -0.1f; vertices3[4].y = -0.15f; vertices3[4].z = -0.1f;
+    vertices3[5].x = 0.1f; vertices3[5].y = -0.15f; vertices3[5].z = -0.1f;
+    vertices3[6].x = -0.05f; vertices3[6].y = -0.25f; vertices3[6].z = -0.1f;
+    vertices3[7].x = 0.05f; vertices3[7].y = -0.25f; vertices3[7].z = -0.1f;
+
+    drawCustomCuboid(vertices3);
+
+    glPushMatrix();
+    glTranslatef(0, 0, -0.1f);
+
+    Vec3 vertices[8];
+    vertices[0].x = -0.1f; vertices[0].y = 0.15f; vertices[0].z = 0;
+    vertices[1].x = 0.1f; vertices[1].y = 0.15f; vertices[1].z = 0;
+    vertices[2].x = -0.1f; vertices[2].y = -0.15f; vertices[2].z = 0;
+    vertices[3].x = 0.1f; vertices[3].y = -0.15f; vertices[3].z = 0;
+    vertices[4].x = -0.05f; vertices[4].y = 0.15f; vertices[4].z = -0.1f;
+    vertices[5].x = 0.05f; vertices[5].y = 0.15f; vertices[5].z = -0.1f;
+    vertices[6].x = -0.05f; vertices[6].y = -0.15f; vertices[6].z = -0.1f;
+    vertices[7].x = 0.05f; vertices[7].y = -0.15f; vertices[7].z = -0.1f;
+
+    Vec3 vertices2[8];
+    vertices2[0].x = -0.1f; vertices2[0].y = -0.15f; vertices2[0].z = 0;
+    vertices2[1].x = 0.1f; vertices2[1].y = -0.15f; vertices2[1].z = 0;
+    vertices2[2].x = -0.05f; vertices2[2].y = -0.25f; vertices2[2].z = 0;
+    vertices2[3].x = 0.05f; vertices2[3].y = -0.25f; vertices2[3].z = 0;
+    vertices2[4].x = -0.05f; vertices2[4].y = -0.15f; vertices2[4].z = -0.1f;
+    vertices2[5].x = 0.05f; vertices2[5].y = -0.15f; vertices2[5].z = -0.1f;
+    vertices2[6].x = -0.05f; vertices2[6].y = -0.25f; vertices2[6].z = -0.05f;
+    vertices2[7].x = 0.05f; vertices2[7].y = -0.25f; vertices2[7].z = -0.05f;
+
+    drawCustomCuboid(vertices);
+    drawCustomCuboid(vertices2);
+
+    glTranslatef(0, 0, 0.2f);
+    glRotatef(180, 0, 1, 0);
+    drawCustomCuboid(vertices);
+    drawCustomCuboid(vertices2);
+
+    glPopMatrix();
+
+}
+
+void drawFinger(bool isThumb = false) {
+    // Joint
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0);
+    drawJoint(0.02f, 0.05f);
+    glPopMatrix();
+
+    // Finger Base
+    glTranslatef(0.0f, -0.07275f, 0.0f);
+    drawBox(0.06f, 0.12f, 0.06f);
+
+    // Joint
+    glTranslatef(0.0f, -0.07275f, 0.0f);
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0);
+    drawJoint(0.0175f, 0.04f);
+    glPopMatrix();
+
+    // Finger Middle
+    glTranslatef(0.0f, -0.05275f, 0.0f);
+    drawBox(0.04f, 0.09f, 0.04f);
+
+    if (isThumb)
+        return;
+
+    // Joint
+    glTranslatef(0.0f, -0.05275f, 0.0f);
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0);
+    drawJoint(0.015f, 0.03f);
+    glPopMatrix();
+
+    // Finger Tip
+    glTranslatef(0.0f, -0.03775f, 0.0f);
+    drawBox(0.03f, 0.06f, 0.03f);
+}
+
 void drawArm(bool isLeft) {
     float side = isLeft ? -1.0f : 1.0f;
 
     glPushMatrix();//joint
     glTranslatef(side * 1.4f, 2.3f, 0);
     glColor3fv(CLR_GREY);
-    drawSphere(0.4f, 16, 16);
+    drawSphere(0.5f, 16, 16);
 
     glPushMatrix();//shoulder
     glRotatef(isLeft ? -20 : 20, 0, 0, 1);
@@ -318,50 +564,52 @@ void drawArm(bool isLeft) {
     glPopMatrix();
 
     glColor3fv(CLR_NAVY);//upper arm
-    glTranslatef(0, -0.6f, 0);
-    drawBox(0.5f, 0.8f, 0.5f);
+    glTranslatef(0, -0.8f, 0);
+    //drawBox(0.5f, 0.8f, 0.5f);
+    drawCylinder(0.25f, 0.3f, 0.8f, 8);
 
     glColor3fv(CLR_GREY);//joint
-    glTranslatef(0, -0.55f, 0);
-    glPushMatrix();
-    drawSphere(0.28f, 16, 16);
-    glPopMatrix();
+    glTranslatef(0, -0.4f, 0);
+    //drawSphere(0.28f, 16, 16);
+    drawJoint(0.32f, 0.5f);
 
     glColor3fv(CLR_NAVY);//lower arm
     glTranslatef(0, -0.6f, 0);
-    glPushMatrix();
-    glTranslatef(0, 0.2f, 0);
-    drawBox(0.6f, 0.4f, 0.6f);
-    glPopMatrix();
-    drawBox(0.45f, 1.0f, 0.45f);
-    glTranslatef(0, -0.7f, 0);
-    drawBox(0.2f, 0.4f, 0.4f);
+    //drawBox(0.45f, 1.0f, 0.45f);
+    drawCylinder(0.175f, 0.25f, 0.85f, 8);
+    drawArmGuard(side);
+
+    // Wrist
+    glColor3fv(CLR_GREY);
+    glTranslatef(0, -0.4f, 0);
+    drawSphere(0.2f, 16, 16);
+
+    // Palm
+    glColor3fv(CLR_NAVY);
+    glTranslatef(0, -0.25f, 0);
+    //drawBox(0.2f, 0.4f, 0.35f);
+    drawPalm();
 
     glPushMatrix();//finger
-    glTranslatef(0.0f, -0.22f, 0.0f);
+    glTranslatef(0.0f, -0.2625f, 0.0f);
     glColor3fv(CLR_GREY);
     for (int i = 0; i < 4; i++) {
-        glPushMatrix();
         float zPos = -0.12f + (i * 0.08f);
+        glPushMatrix();
         glTranslatef(0.0f, 0.0f, zPos);
-        drawBox(0.04f, 0.15f, 0.04f);
-        glTranslatef(0.0f, -0.15f, 0.0f);
-        drawBox(0.03f, 0.12f, 0.03f);
+        drawFinger();
         glPopMatrix();
     }
 
     glPushMatrix();
-    glTranslatef(0.0f, 0.05f, 0.22f);
-    glRotatef(-45, 1, 0, 0);
-    drawBox(0.05f, 0.14f, 0.05f);
-    glTranslatef(0.0f, -0.14f, 0.0f);
-    drawBox(0.04f, 0.10f, 0.04f);
-    glPopMatrix();
+    glTranslatef(0.0f, 0.05f, 0.18f);
+    glRotatef(-60, 1, 0, 0);
+
+    drawFinger(true);
     glPopMatrix();
 
     glPopMatrix();
-
-    
+    glPopMatrix();
 }
 
 void drawLeg(bool isLeft) {
@@ -389,17 +637,16 @@ void drawLeg(bool isLeft) {
 
     glColor3fv(CLR_GREY);//Hydraulic
     glPushMatrix();
-    glTranslatef(0, 0.3f, -0.3f);
-    glRotatef(90, 1, 0, 0);
+    glTranslatef(0, 0, -0.3f);
     drawCylinder(0.1f, 0.1f, 0.6f, 8);
     glPopMatrix();
 
     glTranslatef(0, -0.6f, 0);//mid joint
     glColor3fv(CLR_GREY);
     glPushMatrix();
-    glRotatef(90, 0, 1, 0);
-    glTranslatef(0, 0, -0.35f);
-    drawCylinder(0.2f, 0.2f, 0.7f, 16);
+    glRotatef(-90, 1, 0, 0);
+    //drawCylinder(0.2f, 0.2f, 0.7f, 16);
+    drawJoint(0.2f, 0.7f);
     glPopMatrix();
 
     glColor3fv(CLR_NAVY);//joint cap
@@ -475,7 +722,7 @@ void drawLightIndicator()
     glTranslatef(diffuseLightPosition[0], diffuseLightPosition[1], diffuseLightPosition[2]);
 
     GLUquadric* lightQuad = gluNewQuadric();
-    gluSphere(lightQuad, 0.5f, 30, 30);
+    gluSphere(lightQuad, 0.25f, 30, 30);
     gluDeleteQuadric(lightQuad);
     glEnable(GL_LIGHTING);
     glPopMatrix();
@@ -503,12 +750,21 @@ void display() {
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
     glLightfv(GL_LIGHT0, GL_POSITION, diffuseLightPosition);
 
+    if (toggleLight) {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+    }
+
+    else
+        glDisable(GL_LIGHTING);
+
     drawBody();
     drawHead();
     drawArm(true);
     drawArm(false);
     drawLeg(true);
     drawLeg(false);
+
     drawLightIndicator();
 }
 
