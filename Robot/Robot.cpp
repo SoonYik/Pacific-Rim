@@ -3,6 +3,8 @@
 #include <gl/GLU.h>
 #include <math.h>
 
+#include "ShapeFunction.h" 
+
 #pragma comment (lib, "OpenGL32.lib")
 #pragma comment (lib, "GLU32.lib")
 #define WINDOW_TITLE "Pacific Rim"
@@ -10,10 +12,7 @@
 struct Vec3 { float x, y, z; };
 
 // Constants
-float
-PI = 3.1415926535;
-
-// Window
+float PI = 3.1415926535;
 int windowWidth = 1200;
 
 //Cam Position
@@ -31,7 +30,7 @@ forwardY,
 forwardZ;
 
 bool toggleLight = true;
-
+bool isSwordActive = false;
 float turbineRotation = 0.0f;
 
 //Color
@@ -299,6 +298,103 @@ void drawAbdomenDetail()
     glMaterialfv(GL_FRONT, GL_EMISSION, noEmit);
     glPopMatrix();
 
+    glPopMatrix();
+}
+
+void DrawWingPart(float side) { // side: 1.0 for right, -1.0 for left
+    glPushMatrix();
+    glTranslatef(0.8f * side, 0.0f, 0.0f);
+    glRotatef(35.0f * side, 0.0f, 0.0f, 1.0f);
+
+    DrawBox(0.5f, 1.8f, 0.3f, 0.25f, 0.25f, 0.25f);
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.2f, 0.16f);
+    DrawBox(0.3f, 1.0f, 0.05f, 0.1f, 0.1f, 0.1f);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.9f, 0.0f);
+    DrawBox(0.5f, 0.2f, 0.32f, 0.8f, 0.1f, 0.1f);
+    glPopMatrix();
+    glPopMatrix();
+}
+
+void DrawSword() {
+    glPushMatrix();
+    glTranslatef(0.0f, -4.5f, 0.0f);
+
+    // ??? (??)
+    DrawCylinder(0.12f, 0.12f, 3.5f, 0.1f, 0.1f, 0.1f);
+
+    // ?????? (Pommel)
+    glPushMatrix();
+    DrawSphere(0.25f, 0.4f, 0.4f, 0.4f);
+    glPopMatrix();
+
+    // ???????? (??)
+    glPushMatrix();
+    glTranslatef(0.0f, 1.5f, 0.0f);
+    DrawCylinder(0.14f, 0.14f, 0.3f, 0.8f, 0.0f, 0.0f);
+    glPopMatrix();
+    glPopMatrix();
+
+
+    glPushMatrix();
+    glTranslatef(0.0f, -1.0f, 0.0f); // ????
+
+    DrawBox(1.2f, 1.0f, 0.6f, 0.2f, 0.2f, 0.2f);
+
+    // ???????
+    DrawWingPart(1.0f);  // ??
+    DrawWingPart(-1.0f); // ??
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 0.35f);
+    DrawBox(0.3f, 0.6f, 0.1f, 0.0f, 0.8f, 0.4f);
+    glPopMatrix();
+    glPopMatrix();
+
+
+    glPushMatrix();
+    glTranslatef(0.0f, 3.0f, 0.0f);
+
+    // A. ?? (Spine) - ?????
+    glPushMatrix();
+    DrawBox(0.8f, 7.0f, 0.3f, 0.15f, 0.15f, 0.15f);
+    glPopMatrix();
+
+    // B. ?? (Edges) - ?????????
+    // ?? (?????????)
+    glPushMatrix();
+    glTranslatef(-0.6f, 0.0f, 0.0f);
+    glScalef(1.0f, 1.0f, 0.5f);
+
+    // ??????????
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+    glPopMatrix();
+
+    // ?? (??)
+    glPushMatrix();
+    glTranslatef(0.6f, 0.0f, 0.0f);
+    glScalef(1.0f, 1.0f, 0.5f);
+
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); // ???????
+
+    //DrawTriPrism(0.4f, 6.5f, 0.6f, 0.7f, 0.7f, 0.7f);
+    glPopMatrix();
+
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.0f, 6.5f, 0.0f);
+
+    // ????????
+    glScalef(1.2f, 2.5f, 0.2f);
+    DrawPyramid(0.7f, 1.0f, 0.6f, 0.6f, 0.6f);
     glPopMatrix();
 }
 
@@ -754,7 +850,6 @@ void display() {
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
     }
-
     else
         glDisable(GL_LIGHTING);
 
@@ -764,6 +859,17 @@ void display() {
     drawArm(false);
     drawLeg(true);
     drawLeg(false);
+
+    if (isSwordActive) {
+        glPushMatrix();
+        glTranslatef(1.2f, 0.0f, 0.5f);
+        glRotatef(45, 1, 0, 0);
+        glRotatef(5, 0, 0, 1);
+        glRotatef(90, 0, 1, 0);
+        glScalef(0.3f, 0.3f, 0.3f);
+        DrawSword();
+        glPopMatrix();
+    }
 
     drawLightIndicator();
 }
@@ -846,6 +952,10 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
         case 'P':
             if (toggleLight) toggleLight = false;
             else toggleLight = true;
+            break;
+
+        case 'Q':
+            isSwordActive = !isSwordActive;
             break;
         }
 

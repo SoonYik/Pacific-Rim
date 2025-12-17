@@ -24,6 +24,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Robot.cpp" />
+    <ClCompile Include="ShapeFuntion.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ShapeFunction.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
