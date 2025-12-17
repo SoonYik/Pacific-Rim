@@ -42,6 +42,8 @@ const float CLR_WHITE[] = { 0.90f, 0.90f, 0.90f };
 const float CLR_YELLOW[] = { 1.00f, 0.80f, 0.00f };
 const float CLR_GLOW[] = { 1.00f, 0.60f, 0.20f };
 const float CLR_SILVER[] = { 0.75f, 0.75f, 0.75f };
+GLuint textures[2];
+int currentTexture = 0;
 
 //Light
 float noEmit[] = { 0,0,0,1 };
@@ -86,6 +88,38 @@ Vec3 calculateNormal(Vec3 vertex1, Vec3 vertex2, Vec3 vertex3, bool normalize = 
         normal = normalizeNormal(normal);
 
     return normal;
+}
+
+GLuint LoadBMP(const char* filename)
+{
+    BITMAP BMP;
+    GLuint textureID;
+
+    HBITMAP hBMP = (HBITMAP)LoadImage(GetModuleHandle(NULL),
+        filename, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_LOADFROMFILE);
+    if (!hBMP) {
+        MessageBoxA(NULL, ("Failed to load texture"), "Error", MB_OK);
+        return 0;
+    }
+    GetObject(hBMP, sizeof(BMP), &BMP);
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, BMP.bmWidth, BMP.bmHeight,
+        0, GL_BGR_EXT, GL_UNSIGNED_BYTE, BMP.bmBits);
+    DeleteObject(hBMP);
+
+    return textureID;
+}
+
+void loadTexture()
+{
+	textures[0] = LoadBMP("blueSteel.bmp");
+	textures[1] = LoadBMP("redSteel.bmp");
 }
 
 //shapes initialize
@@ -209,6 +243,7 @@ void drawCustomCuboid(Vec3 vertices[8]) {
 void drawSphere(float radius, float slices, float stack) {
     GLUquadricObj* s = gluNewQuadric();
     gluQuadricNormals(s, GLU_SMOOTH);
+    gluQuadricTexture(s, GL_TRUE); 
     gluSphere(s, radius, slices, stack);
     gluDeleteQuadric(s);
 }
@@ -232,6 +267,7 @@ void drawCylinder(float base, float top, float height, int slices, bool hasCaps 
     
     GLUquadricObj* q = gluNewQuadric();
     gluQuadricNormals(q, GLU_SMOOTH);
+    gluQuadricTexture(q, GL_TRUE); 
     gluCylinder(q, base, top, height, slices, 4);
     gluDeleteQuadric(q);
     glPopMatrix();
@@ -473,8 +509,12 @@ void drawHead() {
 
 void drawShoulder(bool isLeft) {
     glPushMatrix();
-    glColor3fv(CLR_NAVY);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     drawBox(1.2f, 0.8f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
+
     glTranslatef(0, 0.41f, 0);
     glColor3fv(CLR_WHITE);
     drawBox(0.4f, 0.02f, 1.02f);
@@ -499,8 +539,11 @@ void drawBody() {
 
     glPushMatrix();//chest
     glScalef(1.8f, 1.2f, 1.1f);
-    glColor3fv(CLR_NAVY);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     drawBox(1.0f, 0.9f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
     glColor3fv(CLR_GREY);
     drawBox(0.8f, 1.0f, 0.8f);
     glPopMatrix();
@@ -535,11 +578,14 @@ void drawJoint(float diameter, float height) {
 }
 
 void drawArmGuard(float side) {
-    glColor3fv(CLR_LIGHT_NAVY);
     glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glRotatef(side * -3.5, 0, 0, 1);
     glTranslatef(side * 0.2f, 0, 0);
     drawBox(0.05f, 0.65f, 0.35f);
+    glDisable(GL_TEXTURE_2D);
 
     glColor3fv(CLR_RED);
     glPushMatrix();
@@ -659,21 +705,24 @@ void drawArm(bool isLeft) {
     drawShoulder(isLeft);
     glPopMatrix();
 
-    glColor3fv(CLR_NAVY);//upper arm
+    glColor3f(1.0f, 1.0f, 1.0f);//upper arm
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glTranslatef(0, -0.8f, 0);
-    //drawBox(0.5f, 0.8f, 0.5f);
     drawCylinder(0.25f, 0.3f, 0.8f, 8);
+    glDisable(GL_TEXTURE_2D);
 
     glColor3fv(CLR_GREY);//joint
     glTranslatef(0, -0.4f, 0);
-    //drawSphere(0.28f, 16, 16);
     drawJoint(0.32f, 0.5f);
 
-    glColor3fv(CLR_NAVY);//lower arm
+    glColor3f(1.0f, 1.0f, 1.0f);//lower arm
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glTranslatef(0, -0.6f, 0);
-    //drawBox(0.45f, 1.0f, 0.45f);
     drawCylinder(0.175f, 0.25f, 0.85f, 8);
     drawArmGuard(side);
+    glDisable(GL_TEXTURE_2D);
 
     // Wrist
     glColor3fv(CLR_GREY);
@@ -681,10 +730,12 @@ void drawArm(bool isLeft) {
     drawSphere(0.2f, 16, 16);
 
     // Palm
-    glColor3fv(CLR_NAVY);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glTranslatef(0, -0.25f, 0);
-    //drawBox(0.2f, 0.4f, 0.35f);
     drawPalm();
+    glDisable(GL_TEXTURE_2D);
 
     glPushMatrix();//finger
     glTranslatef(0.0f, -0.2625f, 0.0f);
@@ -718,9 +769,12 @@ void drawLeg(bool isLeft) {
     glRotatef(isLeft ? -5 : 5, 0, 0, 1);
 
     glPushMatrix();//upper leg
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glTranslatef(0, -0.6f, 0);
-    glColor3fv(CLR_NAVY);
     drawBox(0.55f, 1.0f, 0.6f);
+    glDisable(GL_TEXTURE_2D);
 
     glPushMatrix();//decoration
     glTranslatef(side * 0.28f, 0, 0);
@@ -741,11 +795,12 @@ void drawLeg(bool isLeft) {
     glColor3fv(CLR_GREY);
     glPushMatrix();
     glRotatef(-90, 1, 0, 0);
-    //drawCylinder(0.2f, 0.2f, 0.7f, 16);
     drawJoint(0.2f, 0.7f);
     glPopMatrix();
 
-    glColor3fv(CLR_NAVY);//joint cap
+    glColor3f(1.0f, 1.0f, 1.0f);//joint cap
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
+    glEnable(GL_TEXTURE_2D);
     glPushMatrix();
     glTranslatef(0, 0.05f, 0.35f);
     glRotatef(-10, 1, 0, 0);
@@ -757,10 +812,10 @@ void drawLeg(bool isLeft) {
     glPopMatrix();
 
     glTranslatef(0, -0.7f, 0);//lower leg
-    glColor3fv(CLR_NAVY);
     glPushMatrix();
     glScalef(1.0f, 1.0f, 0.8f);
     drawBox(0.5f, 1.1f, 0.6f);
+    glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
     glColor3fv(CLR_GREY);//decoration
@@ -782,10 +837,13 @@ void drawLeg(bool isLeft) {
     drawSphere(0.25f, 16, 16);
 
     glTranslatef(0, -0.25f, 0.25f);//back
-    glColor3fv(CLR_NAVY);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glPushMatrix();
     glTranslatef(0, 0, -0.3f);
     drawBox(0.5f, 0.4f, 0.4f);
+    glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
     glColor3fv(CLR_GREY);//mid
@@ -794,10 +852,14 @@ void drawLeg(bool isLeft) {
     drawBox(0.4f, 0.2f, 0.5f);
     glPopMatrix();
 
-    glColor3fv(CLR_NAVY);//top
+    glColor3f(1.0f, 1.0f, 1.0f);//top
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
+    
     glPushMatrix();
     glTranslatef(0, -0.1f, 0.35f);
     drawBox(0.55f, 0.3f, 0.5f);
+    glDisable(GL_TEXTURE_2D);
 
     glColor3fv(CLR_GREY);//toe
     glTranslatef(0, -0.15f, 0.26f);
@@ -859,6 +921,7 @@ void display() {
     drawArm(false);
     drawLeg(true);
     drawLeg(false);
+    glDisable(GL_TEXTURE_2D);
 
     if (isSwordActive) {
         glPushMatrix();
@@ -957,9 +1020,12 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
         case 'Q':
             isSwordActive = !isSwordActive;
             break;
-        }
-
-        break;
+        
+        case 'E':
+            currentTexture++;
+			if (currentTexture > 1) currentTexture = 0;
+            break;
+        }break;
     default: return DefWindowProc(hWnd, msg, wParam, lParam);
     }
     return 0;
@@ -983,6 +1049,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow) {
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
+
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    loadTexture();
 
     ShowWindow(hWnd, nCmdShow);
     MSG msg = { 0 };

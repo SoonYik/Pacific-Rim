@@ -29,6 +29,10 @@
   <ItemGroup>
     <ClInclude Include="ShapeFunction.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="blueSteel.bmp" />
+    <Image Include="redSteel.bmp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

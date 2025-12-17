@@ -30,4 +30,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="blueSteel.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="redSteel.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
