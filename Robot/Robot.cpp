@@ -10,6 +10,7 @@
 #define WINDOW_TITLE "Pacific Rim"
 
 struct Vec3 { float x, y, z; };
+struct Rot { float left, right, limitPos, limitNeg; };
 
 // Constants
 float PI = 3.1415926535;
@@ -28,10 +29,51 @@ tempDistance,
 forwardX,
 forwardY,
 forwardZ;
+bool isOrtho = false;
 
 bool toggleLight = true;
 bool isSwordActive = false;
 float turbineRotation = 0.0f;
+
+// Rotations
+float objRotateSpeed = 5.0f;
+Rot upperArmY = { 0, 0, 30, -180 };
+Rot upperArmX = { 0, 0, 90, -60 };
+Rot lowerArm = { 0, 0, 0, -80 };
+Rot wristZ = { 0, 0, 90, -90 };
+Rot wristY = { 0, 0, 90, -90 };
+Rot finger1 = { 0, 0, 0, -90 };
+Rot fingerJoint1 = { 0, 0, 0, -90 };
+Rot fingerTip1 = { 0, 0, 0, -90 };
+Rot finger2 = { 0, 0, 0, -90 };
+Rot fingerJoint2 = { 0, 0, 0, -90 };
+Rot fingerTip2 = { 0, 0, 0, -90 };
+Rot finger3 = { 0, 0, 0, -90 };
+Rot fingerJoint3 = { 0, 0, 0, -90 };
+Rot fingerTip3 = { 0, 0, 0, -90 };
+Rot finger4 = { 0, 0, 0, -90 };
+Rot fingerJoint4 = { 0, 0, 0, -90 };
+Rot fingerTip4 = { 0, 0, 0, -90 };
+Rot thumb = { 0, 0, 0, -90 };
+Rot thumbTip = { 0, 0, 0, -90 };
+
+// Animations
+int animationIndex = 0;
+int animationCount = 1;
+bool startAnimation = false;
+float animationTime = 0;
+
+int rotationCount = 19;
+int rotationIndex = 0;
+bool rotateLeft = false;
+
+Rot fingers[] = { finger1, fingerJoint1, fingerTip1,
+finger2, fingerJoint2, fingerTip2, finger3, fingerJoint3, fingerTip3,
+finger4, fingerJoint4, fingerTip4, thumb, thumbTip };
+
+Rot rotations[] = { upperArmY, upperArmX, lowerArm, wristZ, wristY, finger1, fingerJoint1, fingerTip1,
+finger2, fingerJoint2, fingerTip2, finger3, fingerJoint3, fingerTip3,
+finger4, fingerJoint4, fingerTip4, thumb, thumbTip };
 
 //Color
 const float CLR_NAVY[] = { 0.15f, 0.25f, 0.40f };
@@ -654,7 +696,13 @@ void drawPalm() {
 
 }
 
-void drawFinger(bool isThumb = false) {
+void drawFinger(int fingerIndex, bool isLeft) {
+    if (isLeft)
+        glRotatef(fingers[0 + (fingerIndex * 3)].left, 0, 0, 1);
+
+    else
+        glRotatef(fingers[0 + (fingerIndex * 3)].right, 0, 0, 1);
+
     // Joint
     glPushMatrix();
     glRotatef(90, 0, 1, 0);
@@ -667,6 +715,13 @@ void drawFinger(bool isThumb = false) {
 
     // Joint
     glTranslatef(0.0f, -0.07275f, 0.0f);
+
+    if (isLeft)
+        glRotatef(fingers[1 + (fingerIndex * 3)].left, 0, 0, 1);
+
+    else
+        glRotatef(fingers[1 + (fingerIndex * 3)].right, 0, 0, 1);
+
     glPushMatrix();
     glRotatef(90, 0, 1, 0);
     drawJoint(0.0175f, 0.04f);
@@ -676,11 +731,18 @@ void drawFinger(bool isThumb = false) {
     glTranslatef(0.0f, -0.05275f, 0.0f);
     drawBox(0.04f, 0.09f, 0.04f);
 
-    if (isThumb)
+    if (fingerIndex == 4)
         return;
 
     // Joint
     glTranslatef(0.0f, -0.05275f, 0.0f);
+
+    if (isLeft)
+        glRotatef(fingers[2 + (fingerIndex * 3)].left, 0, 0, 1);
+
+    else
+        glRotatef(fingers[2 + (fingerIndex * 3)].right, 0, 0, 1);
+
     glPushMatrix();
     glRotatef(90, 0, 1, 0);
     drawJoint(0.015f, 0.03f);
@@ -699,6 +761,16 @@ void drawArm(bool isLeft) {
     glColor3fv(CLR_GREY);
     drawSphere(0.5f, 16, 16);
 
+    if (isLeft) {
+        glRotatef(upperArmX.left, 0, 1, 0);
+        glRotatef(upperArmY.left, 1, 0, 0);
+    }
+
+    else {
+        glRotatef(upperArmX.right, 0, 1, 0);
+        glRotatef(upperArmY.right, 1, 0, 0);
+    }
+
     glPushMatrix();//shoulder
     glRotatef(isLeft ? -20 : 20, 0, 0, 1);
     glTranslatef(0, 0.4f, 0);
@@ -714,6 +786,13 @@ void drawArm(bool isLeft) {
 
     glColor3fv(CLR_GREY);//joint
     glTranslatef(0, -0.4f, 0);
+
+    if (isLeft)
+        glRotatef(lowerArm.left, 1, 0, 0);
+
+    else
+        glRotatef(lowerArm.right, 1, 0, 0);
+
     drawJoint(0.32f, 0.5f);
 
     glColor3f(1.0f, 1.0f, 1.0f);//lower arm
@@ -721,6 +800,13 @@ void drawArm(bool isLeft) {
     glBindTexture(GL_TEXTURE_2D, textures[currentTexture]);
     glTranslatef(0, -0.6f, 0);
     drawCylinder(0.175f, 0.25f, 0.85f, 8);
+
+    if (isLeft)
+        glRotatef(wristY.left, 0, 1, 0);
+
+    else
+        glRotatef(wristY.right, 0, 1, 0);
+
     drawArmGuard(side);
     glDisable(GL_TEXTURE_2D);
 
@@ -728,6 +814,13 @@ void drawArm(bool isLeft) {
     glColor3fv(CLR_GREY);
     glTranslatef(0, -0.4f, 0);
     drawSphere(0.2f, 16, 16);
+
+    if (isLeft)
+        glRotatef(wristZ.left, 0, 0, 1);
+
+    else
+        glRotatef(wristZ.right, 0, 0, 1);
+
 
     // Palm
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -744,7 +837,7 @@ void drawArm(bool isLeft) {
         float zPos = -0.12f + (i * 0.08f);
         glPushMatrix();
         glTranslatef(0.0f, 0.0f, zPos);
-        drawFinger();
+        drawFinger(i, isLeft);
         glPopMatrix();
     }
 
@@ -752,7 +845,7 @@ void drawArm(bool isLeft) {
     glTranslatef(0.0f, 0.05f, 0.18f);
     glRotatef(-60, 1, 0, 0);
 
-    drawFinger(true);
+    drawFinger(4, isLeft);
     glPopMatrix();
 
     glPopMatrix();
@@ -891,7 +984,12 @@ void display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90.0f / (16.0f / 9), 16.0f / 9, 0.1, 25);
+
+    if (isOrtho)
+        glOrtho(-4, 4, -2.25f, 2.25f, -25, 25);
+
+    else
+        gluPerspective(90.0f / (16.0f / 9), 16.0f / 9, 0.1, 25);
 
     forwardX = -cos(DegToRad(pitch)) * sin(DegToRad(yaw));
     forwardY = sin(DegToRad(pitch));
@@ -937,9 +1035,80 @@ void display() {
     drawLightIndicator();
 }
 
+void resetPosition() {
+    for (int i = 0; i < rotationCount; i++) {
+        rotations[i].right = 0;
+        rotations[i].left = 0;
+    }
+}
+
+void playBlockAnimation() {
+    if (animationTime < 1) {
+        animationTime += 0.025f;
+
+        rotations[0] = { -80 * animationTime, -80 * animationTime, 30, -180 };
+        rotations[1] = { 50 * animationTime, -60 * animationTime, 90, -60 };
+        rotations[2] = { -60 * animationTime, -60 * animationTime, 0, -80 };
+        rotations[3] = { 0, 0, 90, -90 };
+        rotations[4] = { 0, 0, 90, -90 };
+        rotations[5] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[6] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[7] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[8] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[9] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[10] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[11] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[12] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[13] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[14] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[15] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[16] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[17] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+        rotations[18] = { 90 * animationTime, -90 * animationTime, 0, -90 };
+    }
+}
+
 void update() {
     turbineRotation += 5.0f;
     if (turbineRotation > 360) turbineRotation -= 360;
+
+    if (animationIndex == 0 && startAnimation)
+        playBlockAnimation();
+
+    upperArmY = rotations[0];
+    upperArmX = rotations[1];
+    lowerArm = rotations[2];
+    wristZ = rotations[3];
+    wristY = rotations[4];
+    fingers[0] = rotations[5];
+    fingers[1] = rotations[6];
+    fingers[3] = rotations[7];
+    fingers[3] = rotations[8];
+    fingers[4] = rotations[9];
+    fingers[5] = rotations[10];
+    fingers[6] = rotations[11];
+    fingers[7] = rotations[12];
+    fingers[8] = rotations[13];
+    fingers[9] = rotations[14];
+    fingers[10] = rotations[15];
+    fingers[11] = rotations[16];
+    fingers[12] = rotations[17];
+    fingers[13] = rotations[18];
+
+    finger1 = fingers[0];
+    fingerJoint1 = fingers[1];
+    fingerTip1 = fingers[2];
+    finger2 = fingers[3];
+    fingerJoint2 = fingers[4];
+    fingerTip2 = fingers[5];
+    finger3 = fingers[6];
+    fingerJoint3 = fingers[7];
+    fingerTip3 = fingers[8];
+    finger4 = fingers[9];
+    fingerJoint4 = fingers[10];
+    fingerTip4 = fingers[11];
+    thumb = fingers[12];
+    thumbTip = fingers[13];
 }
 
 LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -1025,6 +1194,85 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
             currentTexture++;
 			if (currentTexture > 1) currentTexture = 0;
             break;
+
+        case 'M':
+            rotateLeft = !rotateLeft;
+            break;
+
+        case 'O':
+            isOrtho = !isOrtho;
+
+        case VK_UP:
+            if (!rotateLeft) {
+                rotations[rotationIndex].right += objRotateSpeed;
+
+                if (rotations[rotationIndex].right > rotations[rotationIndex].limitPos)
+                    rotations[rotationIndex].right = rotations[rotationIndex].limitPos;
+            }
+
+            else {
+                rotations[rotationIndex].left += objRotateSpeed;
+
+                if (rotations[rotationIndex].left > rotations[rotationIndex].limitPos)
+                    rotations[rotationIndex].left = rotations[rotationIndex].limitPos;
+            }
+            break;
+
+        case VK_DOWN:
+            if (!rotateLeft) {
+                rotations[rotationIndex].right -= objRotateSpeed;
+
+                if (rotations[rotationIndex].right < rotations[rotationIndex].limitNeg)
+                    rotations[rotationIndex].right = rotations[rotationIndex].limitNeg;
+            }
+
+            else {
+                    rotations[rotationIndex].left -= objRotateSpeed;
+
+                if (rotations[rotationIndex].left < rotations[rotationIndex].limitNeg)
+                    rotations[rotationIndex].left = rotations[rotationIndex].limitNeg;
+            }
+            break;
+
+        case VK_LEFT:
+            rotationIndex--;
+            if (rotationIndex < 0)
+                rotationIndex = rotationCount - 1;
+            break;
+
+        case VK_RIGHT:
+            rotationIndex++;
+            if (rotationIndex >= rotationCount)
+                rotationIndex = 0;
+            break;
+
+        case 'Z':
+            animationTime = 0;
+            animationIndex--;
+            if (animationIndex < 0)
+                animationIndex = animationCount - 1;
+
+            startAnimation = false;
+            break;
+            
+        case 'X':
+            startAnimation = !startAnimation;
+            animationTime = 0;
+
+            if (!startAnimation)
+                resetPosition();
+
+            break;
+
+        case 'C':
+            animationTime = 0;
+            animationIndex++;
+            if (animationIndex >= animationCount)
+                animationIndex = 0;
+
+            startAnimation = false;
+            break;
+
         }break;
     default: return DefWindowProc(hWnd, msg, wParam, lParam);
     }
