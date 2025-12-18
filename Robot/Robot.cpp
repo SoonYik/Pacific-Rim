@@ -14,6 +14,7 @@ struct Vec3 { float x, y, z; };
 // Constants
 float PI = 3.1415926535;
 int windowWidth = 1200;
+bool isOrtho = false;
 
 //Cam Position
 float
@@ -891,7 +892,15 @@ void display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90.0f / (16.0f / 9), 16.0f / 9, 0.1, 25);
+
+    if (isOrtho)
+    {
+        glOrtho(-8.0, 8.0, -4.5, 4.5, -25.0, 25.0);
+    }
+    else
+    {
+        gluPerspective(90.0f / (16.0f / 9.0f),16.0f / 9.0f,0.1f,25.0f);
+    }
 
     forwardX = -cos(DegToRad(pitch)) * sin(DegToRad(yaw));
     forwardY = sin(DegToRad(pitch));
@@ -1024,6 +1033,10 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
         case 'E':
             currentTexture++;
 			if (currentTexture > 1) currentTexture = 0;
+            break;
+
+        case 'M':
+            isOrtho = !isOrtho;
             break;
         }break;
     default: return DefWindowProc(hWnd, msg, wParam, lParam);
