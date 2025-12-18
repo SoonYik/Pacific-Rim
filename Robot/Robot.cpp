@@ -15,6 +15,7 @@ struct Rot { float left, right, limitPos, limitNeg; };
 // Constants
 float PI = 3.1415926535;
 int windowWidth = 1200;
+bool isOrtho = false;
 
 //Cam Position
 float
