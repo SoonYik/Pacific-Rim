@@ -30,7 +30,6 @@ tempDistance,
 forwardX,
 forwardY,
 forwardZ;
-bool isOrtho = false;
 
 bool toggleLight = true;
 bool isSwordActive = false;
